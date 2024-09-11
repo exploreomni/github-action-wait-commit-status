@@ -7,7 +7,7 @@ const check_retry_count = core.getInput('check-retry-count');
 const check_retry_interval = core.getInput('check-retry-interval');
 
 // Function to wait for a specific commit status to become a success
-async function waitForCommitStatus(owner, repo, commitSha, statusContext, lookup, options = {}) {
+async function waitForCommitStatus(owner, repo, commitSha, statusContext, options = {}) {
     const { retryCount = 10, retryInterval = 5000 } = options;
 
     let attemptCount = 0;
@@ -19,9 +19,14 @@ async function waitForCommitStatus(owner, repo, commitSha, statusContext, lookup
         });
 
         const matchingStatus = statuses.find((status) => status.context === statusContext);
-        if (matchingStatus && matchingStatus.state === lookup) {
-            console.log(`Commit status "${statusContext}" is now a success.`);
+        if (matchingStatus && matchingStatus.state === 'success') {
+            console.log(`Commit status "${statusContext}" is now success.`);
             return true;
+        }
+
+        if (matchingStatus && (matchingStatus.state === 'failure' || matchingStatus.state === 'error')) {
+            console.log(`Commit status "${statusContext}" is now ${matchingStatus.state}.`);
+            return false;
         }
 
         if (attemptCount >= retryCount) {
@@ -31,7 +36,7 @@ async function waitForCommitStatus(owner, repo, commitSha, statusContext, lookup
 
         attemptCount++;
 
-        console.log(`Waiting for commit status "${statusContext}" to become a success...`);
+        console.log(`Waiting for commit status "${statusContext}" to become success...`);
 
         await new Promise((resolve) => setTimeout(resolve, retryInterval));
     }
@@ -44,7 +49,6 @@ const main = async function() {
         const repository = core.getInput('repository');
         const sha = core.getInput('sha');
         const status = core.getInput('status');
-        const expected_state = core.getInput('expected_state');
 
         const options = {
             retryCount: check_retry_count, // Retry 5 times before giving up
@@ -54,7 +58,7 @@ const main = async function() {
         owner = repository.split("/")[0]
         repo = repository.split("/")[1]
 
-        const test = await waitForCommitStatus(owner, repo, sha, status, expected_state, options)
+        const test = await waitForCommitStatus(owner, repo, sha, status, options)
             .then((result) => {
                 console.log("Done waiting.");
                 if (result) {
