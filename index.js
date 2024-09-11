@@ -14,12 +14,10 @@ async function waitForCommitStatus(owner, repo, commitSha, statusContext, option
 
 
     while (true) {
-        const response = await client.rest.repos.getCombinedStatusForRef({
+        const { data: { statuses } } = await client.rest.repos.getCombinedStatusForRef({
             owner, repo, ref: commitSha,
         });
 
-        console.log(JSON.stringify(response, null, 2))
-        const { data: { statuses } } = response
         console.log(`Found these commit status contexts: ${statuses.map((s) => s.context)}`)
 
         const matchingStatus = statuses.find((status) => status.context === statusContext);
