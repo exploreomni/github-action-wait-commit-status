@@ -14,7 +14,7 @@ async function waitForCommitStatus(owner, repo, commitSha, statusContext, option
 
 
     while (true) {
-        const response = await client.rest.repos.listCommitStatusesForRef({
+        const response = await client.rest.repos.getCombinedStatusForRef({
             owner, repo, ref: commitSha,
         });
 
