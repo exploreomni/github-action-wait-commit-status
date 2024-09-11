@@ -18,6 +18,8 @@ async function waitForCommitStatus(owner, repo, commitSha, statusContext, option
             owner, repo, ref: commitSha,
         });
 
+        console.log(`Found these commit status contexts: ${statuses.map((s) => s.context)}`)
+
         const matchingStatus = statuses.find((status) => status.context === statusContext);
         if (matchingStatus && matchingStatus.state === 'success') {
             console.log(`Commit status "${statusContext}" is now success.`);
